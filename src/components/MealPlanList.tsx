@@ -173,7 +173,14 @@ const MealPlanList = ({ onSelect }) => {
       {/* Dialog Components */}
       <UploadMealPlanDialog open={dialogState.uploadOpen} onOpenChange={() => handleDialogToggle("uploadOpen", false)} onUpload={handleUpload} />
       <DeleteMealPlanDialog open={dialogState.deleteOpen} onOpenChange={() => handleDialogToggle("deleteOpen", false)} onConfirm={handleDelete} planName={selectedPlan?.meal_plan_name} />
-      <MealPlanItemsDialog open={dialogState.itemsOpen} onOpenChange={() => handleDialogToggle("itemsOpen", false)} items={planItems} planName={selectedPlan?.meal_plan_name || ""} plan={selectedPlan} onLongBillGenerated={() => toast({ title: "Long Bill Generated", description: "The long bill was created successfully." })} />
+      <MealPlanItemsDialog 
+      open={dialogState.itemsOpen} 
+      onOpenChange={() => handleDialogToggle("itemsOpen", false)} 
+      items={planItems} 
+      planName={selectedPlan?.meal_plan_name || ""} 
+      planId={selectedPlan?.id || ""} 
+      planFileName={selectedPlan?.file_name || ""} 
+      onLongBillGenerated={() => toast({ title: "Long Bill Generated", description: "The long bill was created successfully." })} />
     </div>
   );
 };

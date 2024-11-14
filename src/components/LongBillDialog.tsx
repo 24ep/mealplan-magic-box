@@ -3,18 +3,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Printer, Edit , Sheet } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
-
-const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
+import { useToast } from "@/components/ui/use-toast";
+const LongBillDialog = ({ bill, open, onOpenChange }) => {
+  const { toast } = useToast();
   const [isEditMode, setIsEditMode] = useState(false);
   const [billData, setBillData] = useState({
     id: "",
+    meal_plan_id:null,
     event_date: "",
-    event_id: "",
+    event_id: null,
     venue: "",
-    bill_no: "",
     event_name: "",
     company_name: "",
-    waiter: "",
+    waiter: null,
+    status: null,
+    receiver:"",
+    receiver_full_name:"",
+    signature:"",
     items: []
   });
   const contentRef = useRef<HTMLDivElement>(null);
@@ -34,7 +39,8 @@ const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ longbill_id })
       });
-      if (response.ok) {
+      const result = await response.json();
+      if (result.status === "success") {
         const data = await response.json();
         setBillData(prev => ({ ...prev, items: data }));
       }
@@ -42,6 +48,60 @@ const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
       console.error("Error fetching bill items:", error);
     }
   };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch("http://10.0.10.46/api/r/v1/LongBillData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ LongBillData: billData }),
+      });
+  
+      if (!response.ok) {
+        // Handle network or HTTP errors (e.g., 500, 404)
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+  
+      if (result.status === "success") {
+        console.log("Bill saved successfully:", result);
+        setIsEditMode(false); // Exit edit mode after saving
+        toast({
+          title: "Success",
+          description: "Long bill saved successfully.",
+          
+        });
+      } else {
+        // Handle server-side failure (e.g., if result.status isn't success)
+        console.error("Error saving bill:", result.message || "Unknown error");
+        toast({
+          title: "Error",
+          description: result.message || "An error occurred while saving the bill.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving bill:", error);
+      toast({
+        title: "Error",
+        description: error.message || "An unexpected error occurred.",
+        status: "error",  // Optional, to specify error type
+      });
+    }
+  };
+  
+// In your JSX, update the onClick handler of the Save button
+<Button
+  variant="default"
+  onClick={handleSave}
+>
+  Save
+</Button>
+
+
 
   const handleInputChange = (e, field, index = null) => {
     const value = index !== null ? parseFloat(e.target.value) || e.target.value : e.target.value;
@@ -57,16 +117,15 @@ const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
 
   const handlePrint = useReactToPrint({
     contentRef,
-    pageStyle: `
-      @media print {
+    // pageStyle: `
+    //   @media print {
        
-
-        .no-print {
-          display: none;
-        }
-        /* Add any additional print styles here */
-      }
-    `
+    //     .no-print {
+    //       display: none;
+    //     }
+     
+    //   }
+    // `
   });
 
   const totalAmount = billData.items?.reduce((sum, item) => sum + (item.quantity * item.price || 0), 0) || 0;
@@ -104,39 +163,40 @@ const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
               <h2 className="text-center font-bold text-lg mt-4">ใบส่งสินค้า/บริการ <br /> DELIVERY ORDER</h2>
             </DialogHeader>
 
-            <table className="w-full mt-4 mb-4 border-collapse">
+            <div className="border border-black mt-4">
+            <table className="w-full border-collapse">
               <tbody>
                 <tr>
-                  <td colSpan="4" className="border border-black p-2 text-center">
+                  <td colSpan="4" className="border border-t-0 border-l-0 border-black p-2 text-center">
                     <div className="text-red-600">วันที่/Date</div>
                     {renderInputOrDisplay("event_date", billData.event_date)}
                   </td>
-                  <td colSpan="4" className="border border-black p-2 text-center">
+                  <td colSpan="4" className="border border-t-0 border-black p-2 text-center">
                     <div className="text-red-600">เลขที่งาน/ Event ID</div>
                     {renderInputOrDisplay("event_id", billData.event_id)}
                   </td>
-                  <td colSpan="5" className="border border-black p-2 text-center">
+                  <td colSpan="5" className="border  border-t-0 border-black p-2 text-center">
                     <div className="text-red-600">สถานที่จัดงาน/Venue</div>
                     {renderInputOrDisplay("venue", billData.venue)}
                   </td>
-                  <td colSpan="3" className="border border-black p-2 text-center">
+                  <td colSpan="3" className="border  border-t-0 border-r-0 border-black p-2 text-center">
                     <div className="text-red-600">เลขที่บิล/Bill No.</div>
                     {renderInputOrDisplay("id", billData.id)}
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan="1" className="border text-red-600 border-e-0 border-black p-2 text-center">ชื่องาน/Event Name</td>
-                  <td colSpan="15" className="border border-s-0 border-black p-2">
+                  <td colSpan="1" className="border border-l-0 text-red-600 border-e-0 border-black p-2 text-center">ชื่องาน/Event Name</td>
+                  <td colSpan="15" className="border border-r-0 border-s-0 border-black p-2">
                     {renderInputOrDisplay("event_name", billData.event_name)}
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan="1" className="border text-red-600 border-e-0 border-black p-2 text-center">บริษัท/Company</td>
-                  <td colSpan="13" className="border border-s-0 border-black p-2">
+                  <td colSpan="1" className="border border-l-0 text-red-600 border-e-0 border-black p-2 text-center">บริษัท/Company</td>
+                  <td colSpan="13" className="border  border-s-0 border-black p-2">
                     {renderInputOrDisplay("company_name", billData.company_name)}
                   </td>
                   <td colSpan="1" className="border border-e-0 border-black p-2 text-center">พนักงาน/Waiter</td>
-                  <td colSpan="1" className="border border-s-0 border-black p-2">
+                  <td colSpan="1" className="border border-r-0 border-s-0 border-black p-2">
                     {renderInputOrDisplay("waiter", billData.waiter)}
                   </td>
                 </tr>
@@ -146,23 +206,23 @@ const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
             <table className="w-full border-collapse ">
               <thead>
                 <tr className="bg-gray-100 text-center">
-                  <th className="border border-black p-2 text-red-600 font-normal">
+                  <th className="border border-t-0 border-l-0 border-black p-1 text-red-600 font-normal">
                     <div>ลำดับที่</div>
                     <div>Item</div>
                   </th>
-                  <th className="border border-black p-2 text-red-600 font-normal">
+                  <th className="border border-t-0 border-black p-2 text-red-600 font-normal">
                     <div>รายการ</div>
                     <div>Description</div>
                   </th>
-                  <th className="border border-black p-2 text-red-600 font-normal">
+                  <th className="border border-t-0 border-black p-2 text-red-600 font-normal">
                     <div>จำนวน</div>
                     <div>Quantity</div>
                   </th>
-                  <th className="border border-black p-2 text-red-600 font-normal">
+                  <th className="border border-t-0 border-black p-2 text-red-600 font-normal">
                     <div>ราคาต่อหน่วย</div>
                     <div>Unit Price</div>
                   </th>
-                  <th className="border border-black p-2 text-red-600 font-normal">
+                  <th className="border border-t-0 border-r-0 border-black p-2 text-red-600 font-normal">
                     <div>จำนวนเงิน</div>
                     <div>Amount</div>
                   </th>
@@ -171,8 +231,8 @@ const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
               <tbody>
                 {billData.items?.map((item, index) => (
                   <tr key={index}>
-                    <td className="border border-black p-1 text-red-600 text-center">{index + 1}</td>
-                    <td className="border border-black p-1">
+                    <td className="border  border-l-0   border-black p-1 text-red-600 text-center">{index + 1}</td>
+                    <td className="border  border-black p-1">
                       {isEditMode ? (
                         <input
                           type="text"
@@ -217,7 +277,7 @@ const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
                         />
                       )}
                     </td>
-                    <td className="border border-black p-1 text-right">
+                    <td className="border border-r-0  border-black p-1 text-right">
                       {(item.quantity * item.price || 0).toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
@@ -228,36 +288,56 @@ const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
               </tbody>
             </table>
 
-            <table className="w-full border-collapse mb-4 ">
-              <tbody>
-                {[{ label: "Total Amount", value: totalAmount }, { label: "Add : Value Added Tax (7%)", value: vat }, { label: "Total Amount Including VAT", value: totalWithVat }].map(({ label, value }) => (
-                  <tr key={label}>
-                    <td colSpan={4} className="border border-0 border-black p-2 text-right font-semibold">
-                      {label}
-                    </td>
-                    <td className="border border-t-0 border-black p-2 text-right">
-                      {value.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <table className="w-full border-collapse mb-4">
+  <tbody>
+    {[
+      { label: "Total Amount", value: totalAmount },
+      { label: "Add : Value Added Tax (7%)", value: vat },
+      { label: "Total Amount Including VAT", value: totalWithVat, isBold: true, isDoubleBorder: true },
+    ].map(({ label, value, isBold, isDoubleBorder }) => (
+      <tr key={label}>
+        <td colSpan="4" className="border border-0 border-black p-2 text-right font-semibold">
+          {label}
+        </td>
+        <td
+          className={`border border-r-0 border-t-0 border-black p-2 text-right ${
+            isBold ? "font-bold" : ""
+          } ${isDoubleBorder ? "border-b-4 border-double" : ""}`}
+        >
+          {value.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
 
-            <div className="flex justify-between mt-4 text-sm pt-6 mt-6">
-              {[{ label: "Received By", thai: "ผู้รับบริการ" }, { label: "Full Name", thai: "ชื่อผู้รับบริการ" }, { label: "Signature", thai: "ลายเซ็น" }].map(({ label, thai }) => (
-                <div key={label} className="flex flex-col items-center">
-                  <p>
-                    {label}: ________________________
-                  </p>
-                  <p>{thai}</p>
-                </div>
-              ))}
-            </div>
+
+</div>
+
+  <table className="table-auto border-t-0 border-collapse border border-black w-full text-sm">
+    <thead>
+      <tr>
+        <th className="border border-t-0 border-black px-4 py-2 text-left font-normal">Received By :</th>
+        <th className="border border-t-0 border-black px-4 py-2 text-left font-normal">Full Name :</th>
+        <th className="border border-t-0 border-black px-4 py-2 text-left font-normal">Signature :</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td className="border border-black px-4 py-6 text-left">ผู้รับบริการ</td>
+        <td className="border border-black px-4 py-6 text-left">ชื่อผู้รับบริการ</td>
+        <td className="border border-black px-4 py-6 text-left">ลายเซ็น</td>
+      </tr>
+    </tbody>
+  </table>
+
+
           </div>
         </div>
+  
 
         <div className="w-[30%] bg-gray-100 p-6">
           <div className="flex flex-col items-start">
@@ -284,10 +364,10 @@ const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
               <Button variant="outline" size="sm" onClick={() => setIsEditMode(!isEditMode)}>
                 <Edit className="w-4 h-4 mr-2" /> {isEditMode ? "View Mode" : "Edit Mode"}
               </Button>
-              <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Button variant="outline" size="sm" onClick={() =>handlePrint()}>
                 <Printer className="w-4 h-4 mr-2" /> Print
               </Button>
-              <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Button variant="outline" size="sm" >
                 <Sheet className="w-4 h-4 mr-2" /> Export to excel
               </Button>
 
@@ -297,7 +377,7 @@ const LongBillDialog = ({ bill, open, onOpenChange, onSave }) => {
                   <Button
                     variant="default"
                     onClick={() => {
-                      onSave(billData);
+                      handleSave();
                       setIsEditMode(false);
                     }}
                   >

@@ -3,10 +3,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import LongBillDialog from "./LongBillDialog";
 import { LongBill } from "@/pages/Index";
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar , Building } from "lucide-react";
+import { Calendar, Building } from "lucide-react";
 
 interface LongBillListProps {
-  selectedMealPlanId: string | null;
+  selectedMealPlanId: number | null;
 }
 
 const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
@@ -30,6 +30,8 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: formData,
         });
+
+        
 
         if (response.ok) {
           const data = await response.json();
@@ -62,15 +64,48 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
   console.log("Selected Meal Plan ID:", selectedMealPlanId);
 
   const filteredBills = selectedMealPlanId
-    ? bills.filter((bill) => String(bill.mealPlanId || bill.meal_plan_id) === String(selectedMealPlanId))
+    ? bills.filter((bill) => String(bill.meal_plan_id) === String(selectedMealPlanId))
     : [];
 
   console.log("Filtered Bills:", filteredBills);
 
+  const handleGenerateBlankLongBill = () => {
+    const newBlankBill: LongBill = {
+      id: `temp-${Date.now()}`, // Temporary ID
+      meal_plan_id: selectedMealPlanId,
+      company_name: "",
+      event_date: "",
+      event_id: null,
+      event_name: "",
+      venue: "",
+      waiter: null,
+      receiver: "",
+      receiver_full_name : "",
+      signature :"",
+      status  :1
+    };
+
+    setBills((prevBills) => [newBlankBill, ...prevBills]);
+    setSelectedBill(newBlankBill); // Automatically open the dialog for the new blank bill
+
+    toast({
+      title: "New Long Bill Created",
+      description: "A blank long bill has been added and opened.",
+    });
+  };
+
   return (
     <div className="h-full">
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">Long Bills</h2>
-      
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold text-gray-900">Long Bills</h2>
+        <button
+          onClick={handleGenerateBlankLongBill}
+          className="px-4 py-2 bg-app-blue text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Generate Blank Long Bill
+        </button>
+      </div>
+
       <ScrollArea className="h-[calc(100%-2rem)]">
         {filteredBills.length === 0 ? (
           <p className="text-gray-500 text-center">No bills available for this meal plan.</p>
@@ -83,16 +118,20 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
                 onClick={() => setSelectedBill(bill)}
               >
                 <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium text-lg flex  items-center " >LB-{bill.id} - {bill.company_name} </h3>
-                  <p className="text-sm text-gray-500 flex items-center space-x-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>{bill.event_date} | Event ID - {bill.event_id}  {bill.event_name} | {bill.venue}</span>
-                  </p>
-                </div>
+                  <div>
+                    <h3 className="font-medium text-lg flex items-center">
+                      LB-{bill.id} - {bill.company_name}
+                    </h3>
+                    <p className="text-sm text-gray-500 flex items-center space-x-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        {bill.event_date} | Event ID - {bill.event_id} {bill.event_name} | {bill.venue}
+                      </span>
+                    </p>
+                  </div>
 
                   <p className="text-lg font-semibold text-app-blue">
-                    ${bill.amount ? bill.amount.toFixed(2) : "0.00"} 
+                    ${bill.amount ? bill.amount.toFixed(2) : "0.00"}
                   </p>
                 </div>
               </div>

@@ -24,10 +24,15 @@ interface MealPlanItem {
   event_date: string;
   descriptive_of_event: string;
   receiver_full_name: string;
-  event_id: string;
+  event_id: number;
   item_description: string;
   price: number;
   meal_plan_id: string;
+  event_name: string;
+  company_name: string;
+  waiter: number;
+  receiver: string; 
+  signature: string; 
 }
 
 interface MealPlanItemsDialogProps {
@@ -35,6 +40,8 @@ interface MealPlanItemsDialogProps {
   onOpenChange: (open: boolean) => void;
   items: MealPlanItem[];
   planName: string;
+  planId: number;
+  planFileName: string;
   onLongBillGenerated?: () => void;
 }
 
@@ -43,7 +50,8 @@ const MealPlanItemsDialog = ({
   onOpenChange,
   items,
   planName,
-  plan,
+  planId,
+  planFileName,
   onLongBillGenerated = () => {},
 }: MealPlanItemsDialogProps) => {
   const [editedItems, setEditedItems] = useState<MealPlanItem[]>(items);
@@ -94,17 +102,21 @@ const MealPlanItemsDialog = ({
     const selectedData = editedItems.filter((item) =>
       selectedItems.has(item.id)
     );
+  
     try {
       const response = await fetch(
         "http://10.0.10.46/api/r/v1/GenerateLongBillFromJson",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ MealPlanItem: selectedData }),
+          body: JSON.stringify({ MealPlanItem: selectedData  }),
         }
       );
-
-      if (response.ok) {
+  
+      // Parse the JSON response once
+      const result = await response.json();
+  
+      if (result.status === "success") {
         toast({
           title: "Success",
           description: "Long bill generated successfully.",
@@ -112,11 +124,10 @@ const MealPlanItemsDialog = ({
         onLongBillGenerated();
         onOpenChange(false);
       } else {
-        const errorData = await response.json();
         toast({
           title: "Error",
           description: `Failed to create long bill: ${
-            errorData.message || "Unknown error"
+            result.message || "Unknown error"
           }`,
           variant: "destructive",
         });
@@ -129,10 +140,11 @@ const MealPlanItemsDialog = ({
       });
     }
   };
+  
 
   // Group items by event_date and event_id
   const groupedItems = editedItems.reduce((groups, item) => {
-    const key = `${item.event_date}_${item.event_id}_${item.event_name}_${item.company}`;
+    const key = `${item.event_date}_${item.event_id}_${item.event_name}_${item.company_name}`;
     if (!groups[key]) {
       groups[key] = [];
     }
@@ -145,12 +157,12 @@ const MealPlanItemsDialog = ({
       <DialogContent className="fixed right-[5%] max-w-[90%] w-full h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            Items in ML-{plan.id} {plan.meal_plan_name}
+            Items in MP-{planId} {planName}
           </DialogTitle>
         </DialogHeader>
         <div className="p-4 bg-gray-100 rounded mb-4">
           <p>
-            <strong>File :</strong> {plan.file_name}
+            <strong>File :</strong> {planFileName}
           </p>
           <p>
             <strong>Total Items:</strong> {editedItems.length}
@@ -173,14 +185,14 @@ const MealPlanItemsDialog = ({
         </div>
         <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
           {Object.entries(groupedItems).map(([groupKey, itemsInGroup]) => {
-            const [event_date, event_id, event_name, company] = groupKey.split("_");
+            const [event_date, event_id, event_name, company_name] = groupKey.split("_");
             const allSelected = itemsInGroup.every((item) => selectedItems.has(item.id));
             const someSelected = itemsInGroup.some((item) => selectedItems.has(item.id));
 
             return (
               <div key={groupKey} className="mb-4">
                 <span className="font-semibold text-gray-900">
-                  {event_date} | Event ID: {event_id} {event_name} | {company}
+                  {event_date} | Event ID: {event_id} {event_name} | {company_name}
                 </span>
                 <Table>
                   <TableHeader>
@@ -189,7 +201,7 @@ const MealPlanItemsDialog = ({
                         <input
                           type="checkbox"
                           checked={allSelected}
-                          indeterminate={!allSelected && someSelected}
+                          // indeterminate={!allSelected && someSelected}
                           onChange={(e) =>
                             handleSelectAllChange(itemsInGroup, e.target.checked)
                           }
@@ -198,54 +210,78 @@ const MealPlanItemsDialog = ({
                       {[
                         "event_date",
                         "descriptive_of_event",
-                        "receiver_full_name",
                         "item_description",
                         "price",
                         "unit",
-                        "meal_plan_id",
+                        "event_id",
+                        "event_name",
+                        "company_name",
+                        "receiver",
+                        "receiver_full_name",
+                        "signature",
+                        "waiter",
                       ].map((header) => (
                         <TableHead key={header}>{header}</TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {itemsInGroup.map((item, index) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <input
-                            type="checkbox"
-                            checked={selectedItems.has(item.id)}
-                            onChange={() => handleSelectChange(item.id)}
-                          />
-                        </TableCell>
-                        {[
-                          "event_date",
-                          "descriptive_of_event",
-                          "receiver_full_name",
-                          "item_description",
-                          "price",
-                          "unit",
-                          "meal_plan_id",
-                        ].map((field) => (
-                          <TableCell key={field}>
-                            <input
-                              type={field === "price" ? "number" : "text"}
-                              value={item[field]}
-                              onChange={(e) =>
-                                handleEditChange(
-                                  index,
-                                  field,
-                                  field === "price"
-                                    ? parseFloat(e.target.value)
-                                    : e.target.value
-                                )
-                              }
-                            />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
+  {itemsInGroup.map((item, index) => (
+    <TableRow key={item.id}>
+      <TableCell>
+        <input
+          type="checkbox"
+          checked={selectedItems.has(item.id)}
+          onChange={() => handleSelectChange(item.id)}
+        />
+      </TableCell>
+      {[
+        "event_date",
+        "descriptive_of_event",
+        "item_description",
+        "price",
+        "unit",
+        "event_id",
+        "event_name",
+        "company_name",
+        "receiver",
+        "receiver_full_name",
+        "signature",
+        "waiter",
+      ].map((field) => {
+        // Dynamically determine the field type
+        const fieldType = typeof item[field as keyof MealPlanItem];
+
+        // Set input type based on field's data type
+        const inputType = 
+        field === "price" || 
+        field === "waiter" ||
+        field === "event_id" ||
+        fieldType === "number" ? "number" : "text";
+
+        return (
+          <TableCell key={field}>
+            <input
+              type={inputType}
+              value={item[field as keyof MealPlanItem]}
+              onChange={(e) =>
+                handleEditChange(
+                  index,
+                  field,
+                  field === "price"
+                    ? parseFloat(e.target.value)
+                    : e.target.value
+                )
+              }
+            />
+          </TableCell>
+        );
+      })}
+    </TableRow>
+  ))}
+</TableBody>
+
+
                 </Table>
               </div>
             );

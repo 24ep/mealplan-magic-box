@@ -65,7 +65,7 @@ const UploadMealPlanDialog = ({
         });
 
         const result = await response.json();
-        console.log("API Response:", result); // Log the full response for verification
+        // console.log("API Response:", result); // Log the full response for verification
 
         // Check for success based on `status` in response JSON
         if (result.status === "success") {

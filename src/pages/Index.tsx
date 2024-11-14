@@ -11,10 +11,18 @@ export type MealPlan = {
 
 export type LongBill = {
   id: string;
-  title: string;
+  company_name: string;
   amount: number;
-  date: string;
-  mealPlanId: string;
+  event_id: number;
+  event_date: string;
+  waiter: number;
+  receiver: string;
+  receiver_full_name: string;
+  signature:string;
+  venue:string;
+  event_name:string;
+  status:number;
+  meal_plan_id:number;
 };
 
 const Index = () => {
