@@ -54,7 +54,8 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
   useEffect(() => {
     const fetchPlanTypes = async () => {
       try {
-        const response = await fetch("http://10.0.10.46/api/r/v1/QueryBillType");
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+        const response = await fetch(`${apiBaseUrl}/QueryBillType`);
         if (response.ok) {
           const data: PlanType[] = await response.json();
           setPlanTypes(data);
@@ -81,8 +82,8 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
         if (selectedPlanType) {
           formData.append("bill_type", selectedPlanType);
         }
-
-        const response = await fetch("http://10.0.10.46/api/r/v1/QueryMealPlanList", {
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+        const response = await fetch(`${apiBaseUrl}/QueryMealPlanList`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: formData
@@ -171,8 +172,8 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
     try {
       const formData = new URLSearchParams();
       formData.append("meal_plan_id", plan.id);
-
-      const response = await fetch("http://10.0.10.46/api/r/v1/QueryMealPlanItem", {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+      const response = await fetch(`${apiBaseUrl}/QueryMealPlanItem`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: formData,

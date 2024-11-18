@@ -104,8 +104,9 @@ const MealPlanItemsDialog = ({
     );
   
     try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
       const response = await fetch(
-        "http://10.0.10.46/api/r/v1/GenerateLongBillFromJson",
+        `${apiBaseUrl}/GenerateLongBillFromJson`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

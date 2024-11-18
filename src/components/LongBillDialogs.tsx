@@ -34,7 +34,8 @@ const LongBillDialog = ({ bill, open, onOpenChange }) => {
 
   const fetchBillItems = async (longbill_id) => {
     try {
-      const response = await fetch("http://10.0.10.46/api/r/v1/QueryLongBillItems", {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+      const response = await fetch(`${apiBaseUrl}/QueryLongBillItems`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ longbill_id })
@@ -51,7 +52,8 @@ const LongBillDialog = ({ bill, open, onOpenChange }) => {
 
   const handleSave = async () => {
     try {
-      const response = await fetch("http://10.0.10.46/api/r/v1/LongBillData", {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+      const response = await fetch(`${apiBaseUrl}/LongBillData`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

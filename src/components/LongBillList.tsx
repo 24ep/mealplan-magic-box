@@ -24,8 +24,8 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
     try {
       const formData = new URLSearchParams();
       formData.append("meal_plan_id", selectedMealPlanId.toString());
-
-      const response = await fetch("http://10.0.10.46/api/r/QueryLongBillList", {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+      const response = await fetch(`${apiBaseUrl}/QueryLongBillList`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: formData,
