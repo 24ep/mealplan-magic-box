@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,20 +12,59 @@ import { Upload } from "lucide-react";
 import { MealPlan } from "@/pages/Index";
 import { useToast } from "@/components/ui/use-toast";
 
+
+interface PlanType {
+  id: string;
+  type: string;
+}
 interface UploadMealPlanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpload: (plan: MealPlan) => void;
+  planTypes: PlanType[]; // Add planTypes prop
+  selectedPlanType: string; // New prop for the selected plan type
 }
+
+
 
 const UploadMealPlanDialog = ({
   open,
   onOpenChange,
   onUpload,
+  selectedPlanType, // Destructure selectedPlanType
 }: UploadMealPlanDialogProps) => {
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [planTypes, setPlanTypes] = useState<PlanType[]>([]);
+  const [selectedPlanLabel, setSelectedPlanLabel] = useState<string>("");
   const { toast } = useToast();
+
+  
+  useEffect(() => {
+    // Fetch plan types from the API
+    const fetchPlanTypes = async () => {
+      try {
+        const response = await fetch("http://10.0.10.46/api/r/v1/QueryBillType");
+        if (!response.ok) throw new Error("Failed to fetch plan types");
+        const data: PlanType[] = await response.json();
+        setPlanTypes(data);
+
+        // Set the selected plan label based on the selectedPlanType ID
+        const selectedPlan = data.find((type) => type.id === selectedPlanType);
+        if (selectedPlan) {
+          setSelectedPlanLabel(selectedPlan.type);
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Could not load plan types",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchPlanTypes();
+  }, [selectedPlanType, toast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFile(e.target.files?.[0] || null);
@@ -45,68 +84,69 @@ const UploadMealPlanDialog = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !file) return;
+    if (!name || !file || !selectedPlanType) return; // Check for selected plan type
 
     try {
-        // Convert file to base64
-        const base64File = await fileToBase64(file);
+      const base64File = await fileToBase64(file);
 
-        // Make API request with MealPlan name, FileName, and MealPlanFile
-        const response = await fetch("http://10.0.10.46/api/r/v1/UploadMealPlanFile", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                MealPlanFile: base64File,
-                FileName: file.name,   // Send the original file name
-                PlanName: name,        // Send the meal plan name
-            }),
-        });
+      const uploadEndpoint =
+      selectedPlanType === 2
+        ? "http://10.0.10.46/api/r/v1/UploadServiceBoothPlan"
+        : "http://10.0.10.46/api/r/v1/UploadMealPlanFile";
 
-        const result = await response.json();
-        // console.log("API Response:", result); // Log the full response for verification
+      console.log(selectedPlanType)
 
-        // Check for success based on `status` in response JSON
-        if (result.status === "success") {
-            const newPlan: MealPlan = {
-                id: Math.random().toString(36).substr(2, 9),
-                name,
-                date: new Date().toISOString().split("T")[0],
-            };
-            onUpload(newPlan);
-            toast({
-                title: "Success",
-                description: result.message || "Meal plan uploaded successfully.",
-            });
-            setName("");
-            setFile(null);
-            onOpenChange(false);
-        } else {
-            // Log error if the status is anything other than "success"
-            console.error("API Error:", result);
-            toast({
-                title: "Error",
-                description: result.message || "Failed to upload meal plan.",
-                variant: "destructive",
-            });
-        }
-    } catch (error) {
-        // Catch any network or unexpected errors
-        console.error("File upload error:", error);
+      const response = await fetch(uploadEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          PlanFile: base64File,
+          FileName: file.name,
+          PlanName: name,
+          BillType: selectedPlanType, // Include the selected plan type
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.status === "success") {
+        const newPlan: MealPlan = {
+          id: Math.random().toString(36).substr(2, 9),
+          meal_plan_name: name,
+          file_name: file.name,
+          create_at: new Date().toISOString(),
+        };
+        onUpload(newPlan);
         toast({
-            title: "Error",
-            description: `File upload failed: ${(error as Error).message}`,
-            variant: "destructive",
+          title: "Success",
+          description: result.message || "Meal plan uploaded successfully.",
         });
+        setName("");
+        setFile(null);
+        onOpenChange(false);
+      } else {
+        console.error("API Error:", result);
+        toast({
+          title: "Error",
+          description: result.message || "Failed to upload meal plan.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("File upload error:", error);
+      toast({
+        title: "Error",
+        description: `File upload failed: ${(error as Error).message}`,
+        variant: "destructive",
+      });
     }
-};
-
-
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className=" w-[550px] ">
+      <DialogContent className="w-[550px]">
         <DialogHeader>
           <DialogTitle>Upload Meal Plan</DialogTitle>
         </DialogHeader>
@@ -118,6 +158,15 @@ const UploadMealPlanDialog = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter plan name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="planType">Selected Plan Type</Label>
+            <Input
+              id="planType"
+              value={selectedPlanLabel }
+              disabled
+              readOnly
             />
           </div>
           <div className="space-y-2">
@@ -148,7 +197,7 @@ const UploadMealPlanDialog = ({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!name || !file}>
+            <Button type="submit" disabled={!name || !file || !selectedPlanType}>
               Upload
             </Button>
           </div>

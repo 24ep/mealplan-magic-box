@@ -31,7 +31,7 @@ export interface BillData {
   items: BillItem[];
 }
 
-const LongBillDialog = ({ bill, open, onOpenChange }) => {
+const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
   const { toast } = useToast();
   const [isEditMode, setIsEditMode] = useState(false);
   const [billData, setBillData] = useState<BillData>({
@@ -52,7 +52,6 @@ const LongBillDialog = ({ bill, open, onOpenChange }) => {
   const [loading, setLoading] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  
   useEffect(() => {
     if (bill) setBillData((prev) => ({ ...prev, ...bill }));
   }, [bill]);
@@ -60,6 +59,18 @@ const LongBillDialog = ({ bill, open, onOpenChange }) => {
   useEffect(() => {
     if (open && bill?.id) fetchBillItems(bill.id);
   }, [open, bill]);
+
+    
+
+
+  useEffect(() => {
+    // Check if the billData.status has been updated and call handleSave
+    if (billData.status) {
+      console.log("Status updated, calling handleSave with new data:", billData);
+      handleSave(); // Trigger save when status is updated
+    }
+  }, [billData.status]); // This effect will run whenever `billData.status` changes
+  
 
   const fetchBillItems = async (longbill_id) => {
     setLoading(true);
@@ -77,7 +88,7 @@ const LongBillDialog = ({ bill, open, onOpenChange }) => {
           quantity: item.quantity ?? 0,
           price: item.price ?? 0,
         }));
-        setBillData((prev) => ({ ...prev, items: sanitizedData }));
+        setBillData((prev) => ({ ...prev, items: sanitizedData}));
       }
     } catch (error) {
       console.error("Error fetching bill items:", error);
@@ -93,9 +104,9 @@ const LongBillDialog = ({ bill, open, onOpenChange }) => {
 
   const handleSave = async () => {
     try {
+
       const updatedBillData = { ...billData }; // Create a fresh copy
       const payload = { LongBillData: updatedBillData };
-      console.log("Payload sent to API:", payload); // Debug log
       const response = await fetch("http://10.0.10.46/api/r/v1/LongBillData", {
         method: "POST",
         headers: {
@@ -116,6 +127,8 @@ const LongBillDialog = ({ bill, open, onOpenChange }) => {
           title: "Success",
           description: "Long bill saved successfully.",
         });
+        refreshBills(); // Refresh the list after saving
+        // onOpenChange(false); // Close the dialog
       } else {
         toast({
           title: "Failure",
@@ -269,13 +282,8 @@ const LongBillDialog = ({ bill, open, onOpenChange }) => {
           setIsEditMode={setIsEditMode}
           handleSave={handleSave}
           handlePrint={handlePrint}
-          handleStatusChange={(newStatus) => {
-          setBillData((prev) => {
-            const updatedData = { ...prev, status: newStatus };
-            console.log("Updated billData:", updatedData); // Debug log
-            return updatedData;
-          });
-        }}
+          setBillData={setBillData}
+
         />
       </DialogContent>
     </Dialog>

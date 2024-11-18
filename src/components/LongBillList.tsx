@@ -14,60 +14,56 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
   const [bills, setBills] = useState<LongBill[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchLongBills = async () => {
-      if (!selectedMealPlanId) {
-        setBills([]);
-        return;
-      }
+  // Function to fetch long bills based on the selected meal plan ID
+  const fetchLongBills = async () => {
+    if (!selectedMealPlanId) {
+      setBills([]);
+      return;
+    }
 
-      try {
-        const formData = new URLSearchParams();
-        formData.append("meal_plan_id", selectedMealPlanId);
+    try {
+      const formData = new URLSearchParams();
+      formData.append("meal_plan_id", selectedMealPlanId.toString());
 
-        const response = await fetch("http://10.0.10.46/api/r/QueryLongBillList", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formData,
-        });
+      const response = await fetch("http://10.0.10.46/api/r/QueryLongBillList", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData,
+      });
 
-        
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Fetched Long Bills:", data);
-          setBills(data); // Assuming data is an array of LongBill items
-          toast({
-            title: "Success",
-            description: "Long bills loaded successfully.",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "Failed to fetch long bills.",
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
+      if (response.ok) {
+        const data = await response.json();
+        setBills(data); // Set the fetched bills
+      } else {
         toast({
           title: "Error",
-          description: `Error fetching long bills: ${(error as Error).message}`,
+          description: "Failed to fetch long bills.",
           variant: "destructive",
         });
-        console.error("Fetch Long Bills Error:", error);
       }
-    };
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Error fetching long bills: ${(error as Error).message}`,
+        variant: "destructive",
+      });
+    }
+  };
 
+  // Fetch bills on load or when selectedMealPlanId changes
+  useEffect(() => {
     fetchLongBills();
-  }, [selectedMealPlanId, toast]);
+  }, [selectedMealPlanId]);
 
-  console.log("Selected Meal Plan ID:", selectedMealPlanId);
+  // Function to handle refreshing the bills
+  const handleRefresh = () => {
+    fetchLongBills(); // Re-fetch the bills
+  };
 
+  // Filtering the bills based on the selected meal plan ID
   const filteredBills = selectedMealPlanId
     ? bills.filter((bill) => String(bill.meal_plan_id) === String(selectedMealPlanId))
     : [];
-
-  console.log("Filtered Bills:", filteredBills);
 
   const handleGenerateBlankLongBill = () => {
     const newBlankBill: LongBill = {
@@ -80,9 +76,9 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
       venue: "",
       waiter: null,
       receiver: "",
-      receiver_full_name : "",
-      signature :"",
-      status  :1
+      receiver_full_name: "",
+      signature: "",
+      status: 1,
     };
 
     setBills((prevBills) => [newBlankBill, ...prevBills]);
@@ -145,6 +141,7 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
         bill={selectedBill}
         open={selectedBill !== null}
         onOpenChange={(open) => !open && setSelectedBill(null)}
+        refreshBills={handleRefresh} // Pass the refresh callback to the dialog
       />
     </div>
   );

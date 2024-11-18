@@ -1,56 +1,127 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, Trash2, Eye } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import UploadMealPlanDialog from "./UploadMealPlanDialog";
 import DeleteMealPlanDialog from "./DeleteMealPlanDialog";
 import MealPlanItemsDialog from "./MealPlanItemsDialog";
-import { MealPlan } from "@/pages/Index";
 import { useToast } from "@/components/ui/use-toast";
 
-const MealPlanList = ({ onSelect }) => {
-  const [mealPlans, setMealPlans] = useState([]);
-  const [filteredPlans, setFilteredPlans] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [dialogState, setDialogState] = useState({ uploadOpen: false, deleteOpen: false, itemsOpen: false });
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [planItems, setPlanItems] = useState([]);
+// Define interfaces for type safety
+interface PlanType {
+  id: string;
+  name: string; // Assuming the plan type has a 'name' property
+}
+
+interface MealPlan {
+  id: string;
+  meal_plan_name: string;
+  file_name: string;
+  create_at: string;
+  long_bill_count?: number;
+  bill_type?: string;
+}
+
+interface MealPlanListProps {
+  onSelect: (id: string) => void;
+}
+
+const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
+  const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
+  const [filteredPlans, setFilteredPlans] = useState<MealPlan[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [dialogState, setDialogState] = useState({
+    uploadOpen: false,
+    deleteOpen: false,
+    itemsOpen: false
+  });
+  const [selectedPlan, setSelectedPlan] = useState<MealPlan | null>(null);
+  const [planItems, setPlanItems] = useState<any[]>([]);
+  const [planTypes, setPlanTypes] = useState<PlanType[]>([]);
+  const [selectedPlanType, setSelectedPlanType] = useState<string>("");
   const { toast } = useToast();
 
+  // Fetch Plan Types
+  useEffect(() => {
+    const fetchPlanTypes = async () => {
+      try {
+        const response = await fetch("http://10.0.10.46/api/r/v1/QueryBillType");
+        if (response.ok) {
+          const data: PlanType[] = await response.json();
+          setPlanTypes(data);
+        } else {
+          throw new Error("Failed to fetch plan types");
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Could not load plan types",
+          variant: "destructive"
+        });
+      }
+    };
+
+    fetchPlanTypes();
+  }, [toast]);
+
+  // Fetch Meal Plans with Plan Type
   useEffect(() => {
     const fetchMealPlans = async () => {
       try {
-        const response = await fetch("http://10.0.10.46/api/r/v1/QueryMealPlanList");
+        const formData = new URLSearchParams();
+        if (selectedPlanType) {
+          formData.append("bill_type", selectedPlanType);
+        }
+
+        const response = await fetch("http://10.0.10.46/api/r/v1/QueryMealPlanList", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData
+        });
+
         if (response.ok) {
-          const data = await response.json();
+          const data: MealPlan[] = await response.json();
           setMealPlans(data);
-          setFilteredPlans(data); // Initialize filtered plans
+          setFilteredPlans(data);
           toast({ title: "Success", description: "Meal plans loaded successfully" });
         } else {
           throw new Error("Failed to fetch meal plans");
         }
       } catch (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to load meal plans",
+          variant: "destructive"
+        });
       }
     };
 
     fetchMealPlans();
-  }, [toast]);
+  }, [selectedPlanType, toast]);
 
+  // Filter plans based on search and date
   useEffect(() => {
     filterPlans(searchTerm, startDate, endDate);
   }, [searchTerm, startDate, endDate, mealPlans]);
 
-  const handleSearch = (e) => setSearchTerm(e.target.value.toLowerCase());
+ const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => 
+    setSearchTerm(e.target.value.toLowerCase());
 
-  const handleDateChange = (start, end) => {
+  const handleDateChange = (start: string, end: string) => {
     setStartDate(start);
     setEndDate(end);
   };
 
-  const filterPlans = (term, start, end) => {
+  const filterPlans = (term: string, start: string, end: string) => {
     const startTime = start ? new Date(start) : null;
     const endTime = end ? new Date(end) : null;
 
@@ -66,14 +137,27 @@ const MealPlanList = ({ onSelect }) => {
     setFilteredPlans(filtered);
   };
 
-  const handleDialogToggle = (dialog, value) => setDialogState((prev) => ({ ...prev, [dialog]: value }));
+  const handleDialogToggle = (dialog: keyof typeof dialogState, value: boolean) => 
+    setDialogState((prev) => ({ ...prev, [dialog]: value }));
 
-  const handleUpload = (newPlan) => {
-    const updatedPlans = [...mealPlans, newPlan];
-    setMealPlans(updatedPlans);
-    setFilteredPlans(updatedPlans);
-    handleDialogToggle("uploadOpen", false);
-  };
+    const handleUpload = async (newPlan: MealPlan) => {
+      try {
+        await fetchMealPlans(); // Re-fetch meal plans after upload
+        handleDialogToggle("uploadOpen", false);
+        toast({
+          title: "Success",
+          description: "Meal plan uploaded and list refreshed.",
+        });
+      } catch (error) {
+        console.error("Error refreshing meal plans:", error);
+        toast({
+          title: "Error",
+          description: "Failed to refresh meal plans after upload.",
+          variant: "destructive",
+        });
+      }
+    };
+  
 
   const handleDelete = () => {
     const updatedPlans = mealPlans.filter((plan) => plan.id !== selectedPlan?.id);
@@ -83,7 +167,7 @@ const MealPlanList = ({ onSelect }) => {
     setSelectedPlan(null);
   };
 
-  const handleShowMealPlanItems = async (plan) => {
+  const handleShowMealPlanItems = async (plan: MealPlan) => {
     try {
       const formData = new URLSearchParams();
       formData.append("meal_plan_id", plan.id);
@@ -95,26 +179,45 @@ const MealPlanList = ({ onSelect }) => {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data: any[] = await response.json();
         setPlanItems(data);
         setSelectedPlan(plan);
         handleDialogToggle("itemsOpen", true);
-        // toast({ title: "Meal Plan Items", description: `Found ${data.length} items` });
       } else {
         throw new Error("Failed to fetch meal plan items");
       }
     } catch (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to load meal plan items",
+        variant: "destructive"
+      });
     }
   };
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-900">Meal Plans</h2>
-        <Button onClick={() => handleDialogToggle("uploadOpen", true)} size="sm">
-          <Plus className="w-4 h-4 mr-2" /> Add Plan
-        </Button>
+        <div className="flex items-center space-x-4">
+          <Select 
+            value={selectedPlanType} 
+            onValueChange={(value: string) => setSelectedPlanType(value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select Plan Type" />
+            </SelectTrigger>
+            <SelectContent>
+              {planTypes.map((type) => (
+                <SelectItem key={type.id} value={type.id}>
+                  {type.type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={() => handleDialogToggle("uploadOpen", true)} size="sm">
+            <Plus className="w-4 h-4 mr-2" /> Add Plan
+          </Button>
+        </div>
       </div>
 
       {/* Search and Date Filter */}
@@ -145,14 +248,14 @@ const MealPlanList = ({ onSelect }) => {
       {/* Filtered Meal Plans */}
       <ScrollArea className="flex-1">
         <div className="space-y-2">
-          {filteredPlans.map((plan) => (
+          {filteredPlans .map((plan) => (
             <div
               key={plan.id}
               className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
               onClick={() => onSelect(plan.id)}
             >
               <div className="flex flex-col">
-                <p className="font-semibold text-lg">MP-{plan.id}  {plan.meal_plan_name}</p>
+                <p className="font-semibold text-lg">MP-{plan.id} {plan.meal_plan_name}</p>
                 <p className="text-sm text-gray-500">File Name: {plan.file_name}</p>
                 <p className="text-sm text-gray-500">Created At: {plan.create_at}</p>
                 <p className="text-sm text-gray-600">Long Bills: {plan.long_bill_count || 0}</p>
@@ -171,16 +274,28 @@ const MealPlanList = ({ onSelect }) => {
       </ScrollArea>
 
       {/* Dialog Components */}
-      <UploadMealPlanDialog open={dialogState.uploadOpen} onOpenChange={() => handleDialogToggle("uploadOpen", false)} onUpload={handleUpload} />
-      <DeleteMealPlanDialog open={dialogState.deleteOpen} onOpenChange={() => handleDialogToggle("deleteOpen", false)} onConfirm={handleDelete} planName={selectedPlan?.meal_plan_name} />
+      <UploadMealPlanDialog 
+        open={dialogState.uploadOpen} 
+        onOpenChange={() => handleDialogToggle("uploadOpen", false)} 
+        onUpload={handleUpload} 
+        planTypes={planTypes} // Pass planTypes to the dialog
+        selectedPlanType={selectedPlanType}
+      />
+      <DeleteMealPlanDialog 
+        open={dialogState.deleteOpen} 
+        onOpenChange={() => handleDialogToggle("deleteOpen", false)} 
+        onConfirm={handleDelete} 
+        planName={selectedPlan?.meal_plan_name} 
+      />
       <MealPlanItemsDialog 
-      open={dialogState.itemsOpen} 
-      onOpenChange={() => handleDialogToggle("itemsOpen", false)} 
-      items={planItems} 
-      planName={selectedPlan?.meal_plan_name || ""} 
-      planId={selectedPlan?.id || ""} 
-      planFileName={selectedPlan?.file_name || ""} 
-      onLongBillGenerated={() => toast({ title: "Long Bill Generated", description: "The long bill was created successfully." })} />
+        open={dialogState.itemsOpen} 
+        onOpenChange={() => handleDialogToggle("itemsOpen", false)} 
+        items={planItems} 
+        planName={selectedPlan?.meal_plan_name || ""} 
+        planId={selectedPlan?.id || ""} 
+        planFileName={selectedPlan?.file_name || ""} 
+        onLongBillGenerated={() => toast({ title: "Long Bill Generated", description: "The long bill was created successfully." })} 
+      />
     </div>
   );
 };

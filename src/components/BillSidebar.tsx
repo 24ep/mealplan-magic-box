@@ -1,14 +1,25 @@
+// BillSidebar.tsx
 import { Button } from "@/components/ui/button";
 import { Printer, Edit, Sheet } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+interface BillData {
+  meal_plan_id?: string;
+  id: string;
+  event_date: string;
+  company_name: string;
+  event_id: string;
+  event_name: string;
+  status: string;
+}
 
 interface BillSidebarProps {
   billData: BillData;
   isEditMode: boolean;
   setIsEditMode: (value: boolean) => void;
-  handleSave: () => void;
+  handleSave: (updatedBillData: BillData) => void;
   handlePrint: () => void;
-  handleStatusChange: (newStatus: string) => void;
+  setBillData: (updatedData: BillData) => void;
 }
 
 export const BillSidebar: React.FC<BillSidebarProps> = ({
@@ -17,16 +28,24 @@ export const BillSidebar: React.FC<BillSidebarProps> = ({
   setIsEditMode,
   handleSave,
   handlePrint,
-  handleStatusChange,
+  setBillData,
 }) => {
-  const [status, setStatus] = useState(billData.status || "1");
+  const [status, setStatus] = useState(billData.status);
+
+  useEffect(() => {
+    setStatus(billData.status);
+  }, [billData.status]);
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newStatus = event.target.value;
-    console.log("New Status Selected:", newStatus); // Debug log
     setStatus(newStatus);
-    handleStatusChange(newStatus); // Inform the parent
-    handleSave(); // Optional save trigger
+    setBillData({ ...billData, status: newStatus });
+  };
+
+  const saveChanges = () => {
+    const updatedBillData = { ...billData, status };
+    handleSave(updatedBillData);
+    setIsEditMode(false);
   };
 
   return (
@@ -50,21 +69,20 @@ export const BillSidebar: React.FC<BillSidebarProps> = ({
               ID {billData.event_id} {billData.event_name}
             </p>
           </div>
-          <br />
           <div className="px-4 py-3 sm:px-0">
             <h3 className="text-base/7 font-semibold text-gray-900">Status</h3>
             <select
-              value={status} // Use the local state
-              onChange={handleSelectChange} // Update local and parent state
+              value={status}
+              onChange={handleSelectChange}
               className={`mt-1 max-w-2xl border rounded-md px-2 py-1 ${
-                status === "2" ? "text-red-600 border-red-600 bg-red-50" : "text-gray-900 border-gray-300"
+                status === "2"
+                  ? "text-red-600 border-red-600 bg-red-50"
+                  : "text-gray-900 border-gray-300"
               }`}
             >
               <option value="1">New</option>
               <option value="2">Cancelled</option>
             </select>
-
-
           </div>
         </div>
 
@@ -85,14 +103,10 @@ export const BillSidebar: React.FC<BillSidebarProps> = ({
 
           {isEditMode && (
             <div className="flex flex-col justify-end mt-4 gap-2 w-full">
-              <span>Edit</span>
-              <Button variant="default" onClick={handleSave}>
+              <Button variant="default" onClick={saveChanges}>
                 Save
               </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setIsEditMode(false)}
-              >
+              <Button variant="secondary" onClick={() => setIsEditMode(false)}>
                 Cancel
               </Button>
             </div>
