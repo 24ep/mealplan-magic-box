@@ -9,6 +9,9 @@ export default defineConfig(({ mode }) => ({
     host: '0.0.0.0',
     port: 4173,
   },
+  build: {
+    outDir: 'dist',   // Ensure your output directory is correctly set
+  },
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
