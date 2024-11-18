@@ -44,7 +44,7 @@ const UploadMealPlanDialog = ({
     // Fetch plan types from the API
     const fetchPlanTypes = async () => {
       try {
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
         const response = await fetch(`${apiBaseUrl}/QueryBillType`);
         if (!response.ok) throw new Error("Failed to fetch plan types");
         const data: PlanType[] = await response.json();
@@ -89,7 +89,7 @@ const UploadMealPlanDialog = ({
 
     try {
       const base64File = await fileToBase64(file);
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const uploadEndpoint =
       selectedPlanType === 2
         ? `${apiBaseUrl}/UploadServiceBoothPlan`

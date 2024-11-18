@@ -75,7 +75,7 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
   const fetchBillItems = async (longbill_id) => {
     setLoading(true);
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const response = await fetch(`${apiBaseUrl}/QueryLongBillItems`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -107,7 +107,7 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
     try {
 
       const updatedBillData = { ...billData }; // Create a fresh copy
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const response = await fetch(`${apiBaseUrl}/LongBillData`, {
         method: "POST",
         headers: {

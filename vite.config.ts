@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: '0.0.0.0',
     port: 4173,
+    hmr: false,  // Disable Hot Module Replacement
   },
   build: {
     outDir: 'dist',   // Ensure your output directory is correctly set

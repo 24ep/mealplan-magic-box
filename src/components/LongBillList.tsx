@@ -24,7 +24,7 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
     try {
       const formData = new URLSearchParams();
       formData.append("meal_plan_id", selectedMealPlanId.toString());
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const response = await fetch(`${apiBaseUrl}/QueryLongBillList`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },

@@ -54,7 +54,7 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
   useEffect(() => {
     const fetchPlanTypes = async () => {
       try {
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
         const response = await fetch(`${apiBaseUrl}/QueryBillType`);
         if (response.ok) {
           const data: PlanType[] = await response.json();
@@ -82,7 +82,7 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
         if (selectedPlanType) {
           formData.append("bill_type", selectedPlanType);
         }
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
         const response = await fetch(`${apiBaseUrl}/QueryMealPlanList`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -172,7 +172,7 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
     try {
       const formData = new URLSearchParams();
       formData.append("meal_plan_id", plan.id);
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const response = await fetch(`${apiBaseUrl}/QueryMealPlanItem`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
