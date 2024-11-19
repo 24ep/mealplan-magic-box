@@ -29,6 +29,7 @@ export interface BillData {
   receiver_full_name: string;
   signature: string;
   items: BillItem[];
+  running_id:string;
 }
 
 const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
@@ -47,7 +48,8 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
     receiver: "",
     receiver_full_name: "",
     signature: "",
-    items: []
+    items: [],
+    running_id:""
   });
   const [loading, setLoading] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
