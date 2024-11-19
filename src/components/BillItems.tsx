@@ -47,7 +47,7 @@ export const BillItems: React.FC<BillItemsProps> = ({
               <div>รายการ</div>
               <div>Description</div>
             </th>
-            <th className="border border-t-0 border-black p-2 text-red-600 font-normal">
+            <th className="border border-t-0  border-black p-2 text-red-600 font-normal">
               <div>จำนวน</div>
               <div>Quantity</div>
             </th>
@@ -55,7 +55,7 @@ export const BillItems: React.FC<BillItemsProps> = ({
               <div>ราคาต่อหน่วย</div>
               <div>Unit Price</div>
             </th>
-            <th className="border border-t-0 border-r-0 border-black p-2 text-red-600 font-normal">
+            <th className="border border-t-0 border-black p-2 text-red-600 font-normal">
               <div>จำนวนเงิน</div>
               <div>Amount</div>
             </th>

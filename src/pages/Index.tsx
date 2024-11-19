@@ -32,10 +32,6 @@ const Index = () => {
 
   const handleMealPlanSelect = (id: string) => {
     setSelectedMealPlan(id);
-    toast({
-      title: "Meal Plan Selected",
-      description: "Loading associated bills...",
-    });
   };
 
   return (

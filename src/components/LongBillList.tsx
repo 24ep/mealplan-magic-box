@@ -13,6 +13,7 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
   const [selectedBill, setSelectedBill] = useState<LongBill | null>(null);
   const [bills, setBills] = useState<LongBill[]>([]);
   const { toast } = useToast();
+  
 
   // Function to fetch long bills based on the selected meal plan ID
   const fetchLongBills = async () => {
@@ -53,6 +54,7 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
   // Fetch bills on load or when selectedMealPlanId changes
   useEffect(() => {
     fetchLongBills();
+    handleRefresh();
   }, [selectedMealPlanId]);
 
   // Function to handle refreshing the bills
@@ -107,31 +109,38 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
           <p className="text-gray-500 text-center">No bills available for this meal plan.</p>
         ) : (
           <div className="grid grid-cols-1 gap-4">
-            {filteredBills.map((bill) => (
-              <div
-                key={bill.id}
-                className="p-4 rounded-lg border border-gray-200 hover:border-app-blue cursor-pointer transition-colors"
-                onClick={() => setSelectedBill(bill)}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium text-lg flex items-center">
-                      LB-{bill.id} - {bill.company_name}
-                    </h3>
-                    <p className="text-sm text-gray-500 flex items-center space-x-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>
-                        {bill.event_date} | Event ID - {bill.event_id} {bill.event_name} | {bill.venue}
-                      </span>
-                    </p>
-                  </div>
+           {filteredBills.map((bill) => (
+  <div
+    key={bill.id}
+    className="p-4 rounded-lg border border-gray-200 hover:border-blue-500 cursor-pointer transition-colors"
+    onClick={() => setSelectedBill(bill)}
+  >
+    <div className="flex justify-between items-start">
+      <div>
+        <h3 className="font-medium text-lg flex items-center">
+          {bill.prefix}-{bill.running_id} - {bill.company_name}
+        </h3>
+        <p className="text-sm text-gray-500 flex items-center space-x-2">
+          <Calendar className="w-4 h-4" />
+          <span>
+            {bill.event_date} | Event ID - {bill.event_id} {bill.event_name} | {bill.venue}
+          </span>
+        </p>
+        <span
+          className={`mt-2 inline-flex items-center px-2 py-1 rounded text-white ${
+            bill.status === 1 ? 'bg-green-400' : 'bg-red-300'
+          }`}
+        >
+          {bill.status === 1 ? 'New' : 'Cancelled'}
+        </span>
+      </div>
 
-                  <p className="text-lg font-semibold text-app-blue">
-                    ${bill.amount ? bill.amount.toFixed(2) : "0.00"}
-                  </p>
-                </div>
-              </div>
-            ))}
+      <p className="text-lg font-semibold text-blue-500">
+        ${bill.amount ? bill.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
+      </p>
+    </div>
+  </div>
+))}
           </div>
         )}
       </ScrollArea>

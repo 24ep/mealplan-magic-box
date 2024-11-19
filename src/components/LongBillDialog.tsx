@@ -187,7 +187,6 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
         ),
       }));
 
-
     } else {
       // For existing items, mark them as "delete"
       setBillData((prev) => ({
@@ -222,7 +221,7 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
   );
 
   const renderInputOrDisplay = (field: string, value: string | number) => {
-    if (field === "id") {
+    if (field === "running_id") {
       return <TextDisplay value={`${value}`} className="font-normal" />;
     }
 
@@ -247,7 +246,7 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[100%] max-w-[1100px] h-[90vh] p-0 shadow-lg rounded-lg overflow-y-auto flex">
+      <DialogContent className="w-[100%] max-w-[1200px] h-[90vh] p-0 shadow-lg rounded-lg overflow-y-auto flex">
         <div className="w-[70%] pr-4 p-6">
           <div ref={contentRef} className="p-6">
             <BillHeader

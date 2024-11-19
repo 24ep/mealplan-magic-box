@@ -33,6 +33,8 @@ interface MealPlanListProps {
   onSelect: (id: string) => void;
 }
 
+
+
 const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
   const [filteredPlans, setFilteredPlans] = useState<MealPlan[]>([]);
@@ -47,7 +49,7 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
   const [selectedPlan, setSelectedPlan] = useState<MealPlan | null>(null);
   const [planItems, setPlanItems] = useState<any[]>([]);
   const [planTypes, setPlanTypes] = useState<PlanType[]>([]);
-  const [selectedPlanType, setSelectedPlanType] = useState<string>("");
+  const [selectedPlanType, setSelectedPlanType] = useState<number>(1);
   const { toast } = useToast();
 
   // Fetch Plan Types
@@ -75,37 +77,38 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
   }, [toast]);
 
   // Fetch Meal Plans with Plan Type
-  useEffect(() => {
-    const fetchMealPlans = async () => {
-      try {
-        const formData = new URLSearchParams();
-        if (selectedPlanType) {
-          formData.append("bill_type", selectedPlanType);
-        }
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-        const response = await fetch(`${apiBaseUrl}/QueryMealPlanList`, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formData
-        });
+  const fetchMealPlans = async () => {
+    try {
+      const formData = new URLSearchParams();
+    
+      formData.append("bill_type", selectedPlanType);
+      
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      const response = await fetch(`${apiBaseUrl}/QueryMealPlanList`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData
+      });
 
-        if (response.ok) {
-          const data: MealPlan[] = await response.json();
-          setMealPlans(data);
-          setFilteredPlans(data);
-          toast({ title: "Success", description: "Meal plans loaded successfully" });
-        } else {
-          throw new Error("Failed to fetch meal plans");
-        }
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to load meal plans",
-          variant: "destructive"
-        });
+      if (response.ok) {
+        const data: MealPlan[] = await response.json();
+        setMealPlans(data);
+        setFilteredPlans(data);
+        toast({ title: "Success", description: "Meal plans loaded successfully" });
+      } else {
+        throw new Error("Failed to fetch meal plans");
       }
-    };
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to load meal plans",
+        variant: "destructive"
+      });
+    }
+  };
 
+  useEffect(() => {
+    
     fetchMealPlans();
   }, [selectedPlanType, toast]);
 
@@ -143,7 +146,9 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
 
     const handleUpload = async (newPlan: MealPlan) => {
       try {
+        console.log("Uploading new plan:", newPlan);
         await fetchMealPlans(); // Re-fetch meal plans after upload
+        console.log("Meal plans refreshed");
         handleDialogToggle("uploadOpen", false);
         toast({
           title: "Success",
@@ -196,6 +201,12 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
     }
   };
 
+  const handleSelectPlan = (planId: string) => {
+    const selectedPlan = filteredPlans.find(plan => plan.id === planId);
+    setSelectedPlan(selectedPlan); // Ensure selectedPlan is updated
+    onSelect(planId); // Call the onSelect function if needed
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
@@ -209,7 +220,7 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
             </SelectTrigger>
             <SelectContent>
               {planTypes.map((type) => (
-                <SelectItem key={type.id} value={type.id}>
+                <SelectItem key={type.id} value={type.id }>
                   {type.type}
                 </SelectItem>
               ))}
@@ -252,17 +263,21 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
           {filteredPlans .map((plan) => (
             <div
               key={plan.id}
-              className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-              onClick={() => onSelect(plan.id)}
+              className={`flex items-center justify-between p-3 border rounded-lg  hover:bg-gray-50 cursor-pointer ${selectedPlan?.id === plan.id ? 'border-2 border-blue-500' : 'border-gray-200'}`}
+              onClick={() => handleSelectPlan(plan.id)}
             >
               <div className="flex flex-col">
-                <p className="font-semibold text-lg">MP-{plan.id} {plan.meal_plan_name}</p>
+                <p className="font-semibold text-lg">File ID :  {plan.id} | {plan.meal_plan_name}</p>
                 <p className="text-sm text-gray-500">File Name: {plan.file_name}</p>
                 <p className="text-sm text-gray-500">Created At: {plan.create_at}</p>
-                <p className="text-sm text-gray-600">Long Bills: {plan.long_bill_count || 0}</p>
+                <div className="mt-2 flex items-center">
+                  <span className="px-3 py-1 text-sm bg-blue-200 text-blue-800 rounded-full">
+                    {plan.type_lable ? plan.type_lable : "No Type"}
+                  </span>
+                </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleShowMealPlanItems(plan); }}>
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleShowMealPlanItems(plan); onSelect(plan.id) }}>
                   <Eye className="w-4 h-4 text-blue-500" />
                 </Button>
                 <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedPlan(plan); handleDialogToggle("deleteOpen", true); }}>
@@ -285,8 +300,9 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
       <DeleteMealPlanDialog 
         open={dialogState.deleteOpen} 
         onOpenChange={() => handleDialogToggle("deleteOpen", false)} 
-        onConfirm={handleDelete} 
+        onDeleteSuccess={fetchMealPlans} // Pass the fetchMealPlans function
         planName={selectedPlan?.meal_plan_name} 
+        planID={selectedPlan?.id} 
       />
       <MealPlanItemsDialog 
         open={dialogState.itemsOpen} 
@@ -295,7 +311,14 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
         planName={selectedPlan?.meal_plan_name || ""} 
         planId={selectedPlan?.id || ""} 
         planFileName={selectedPlan?.file_name || ""} 
-        onLongBillGenerated={() => toast({ title: "Long Bill Generated", description: "The long bill was created successfully." })} 
+        onLongBillGenerated={() => { // Call onSelect only after a successful long bill generation
+          toast({ title: "Long Bill Generated", description: "The long bill was created successfully." });
+          handleSelectPlan(0); // Select default plan
+          setTimeout(() => {
+           
+            handleSelectPlan(selectedPlan?.id); // Select the desired plan
+          }, 500); // 1000 milliseconds = 1 second
+        }} 
       />
     </div>
   );

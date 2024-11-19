@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+
 interface BillHeaderProps {
     billData: BillData;
     isEditMode: boolean;
@@ -15,10 +16,12 @@ interface BillHeaderProps {
   }) => (
     <>
       <DialogHeader>
-        <DialogTitle className="text-center text-red-600 text-2xl font-bold">Banquet</DialogTitle>
-        <p className="text-center">บริษัท เอ็น.ซี.ซี. เมเนจเม้นท์ แอนด์ ดิเวลลอปเม้นท์ จำกัด</p>
-        <p className="text-center text-sm">60 ศูนย์การประชุมแห่งชาติสิริกิติ์ ถนนรัชดาภิเษก กรุงเทพมหานคร 10110</p>
-        <h2 className="text-center font-bold text-lg mt-4">ใบส่งสินค้า/บริการ <br /> DELIVERY ORDER</h2>
+        <DialogTitle className="text-center text-red-600 text-2xl font-bold"> {billData.bill_type === "bootservice" ? "Banquet - Booth Service" : "Banquet"}</DialogTitle>
+        <p className="text-center text-red-600 ">บริษัท เอ็น.ซี.ซี. แมนเนจเม้นท์ แอนด์ ดิเวลลอปเม้นท์ จำกัด</p>
+        <p className="text-center text-red-600  text-sm">60 ศูนย์การประชุมแห่งชาติสิริกิติ์ ถนนรัชดาภิเษก แขวงคลองเตย เขตคลองเตย กรุงเทพฯ 10110</p>
+        <p className="text-center text-red-600  text-sm">60 Queen Sirikit National Convention Center, Ratchadapisek Road,Khlong Toei Sub-District, Khlong Toei District,</p>
+        <p className="text-center text-red-600  text-sm">Bangkok 10110, Thailand  TAX ID : 0105534007639  Head Office</p>
+        <h2 className="text-center text-red-600  font-bold text-lg mt-4">ใบส่งสินค้า/บริการ <br /> DELIVERY ORDER</h2>
       </DialogHeader>
   
       <div className="border  border-b-0 border-black mt-4">
@@ -39,7 +42,7 @@ interface BillHeaderProps {
               </td>
               <td colSpan="4" className="border border-t-0 border-r-0 border-black p-2 text-center">
                 <div className="text-red-600">เลขที่บิล/Bill No.</div>
-                {renderInputOrDisplay("id", billData.id)}
+                {renderInputOrDisplay("running_id", billData.running_id)}
               </td>
             </tr>
             <tr>

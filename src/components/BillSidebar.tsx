@@ -11,6 +11,7 @@ interface BillData {
   event_id: string;
   event_name: string;
   status: string;
+  running_id:number;
 }
 
 interface BillSidebarProps {
@@ -53,7 +54,9 @@ export const BillSidebar: React.FC<BillSidebarProps> = ({
       <div className="flex flex-col items-start">
         <div className="mb-4">
           <p className="font-bold">Meal File ID: {billData.meal_plan_id || "N/A"}</p>
-          <p className="font-bold">Billing ID: {billData.id}</p>
+          <p className="font-bold">Billing ID: {billData.running_id}</p>
+          <p className="font-bold">Record ID: {billData.id}</p>
+          <p className="font-bold">Type: {billData.bill_type}</p>
           <br />
           <div className="px-4 py-3 sm:px-0">
             <h3 className="text-base/7 font-semibold text-gray-900">Event Date</h3>

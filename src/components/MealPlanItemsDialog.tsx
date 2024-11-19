@@ -110,11 +110,10 @@ const MealPlanItemsDialog = ({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ MealPlanItem: selectedData  }),
+          body: JSON.stringify({ MealPlanItem: selectedData }),
         }
       );
   
-      // Parse the JSON response once
       const result = await response.json();
   
       if (result.status === "success") {
@@ -122,14 +121,12 @@ const MealPlanItemsDialog = ({
           title: "Success",
           description: "Long bill generated successfully.",
         });
-        onLongBillGenerated();
+        onLongBillGenerated(); // Call the refresh callback here
         onOpenChange(false);
       } else {
         toast({
           title: "Error",
-          description: `Failed to create long bill: ${
-            result.message || "Unknown error"
-          }`,
+          description: `Failed to create long bill: ${result.message || "Unknown error"}`,
           variant: "destructive",
         });
       }
@@ -141,7 +138,6 @@ const MealPlanItemsDialog = ({
       });
     }
   };
-  
 
   // Group items by event_date and event_id
   const groupedItems = editedItems.reduce((groups, item) => {
@@ -158,7 +154,7 @@ const MealPlanItemsDialog = ({
       <DialogContent className="fixed right-[5%] max-w-[90%] w-full h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            Items in MP-{planId} {planName}
+            Items in File {planId} {planName}
           </DialogTitle>
         </DialogHeader>
         <div className="p-4 bg-gray-100 rounded mb-4">
