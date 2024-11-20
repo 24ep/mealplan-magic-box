@@ -24,7 +24,7 @@ const ReportDialog: React.FC<ReportDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[90%] h-[90%] ">
 
-      <iframe title="LongBill" width="600" height="373.5" src="https://app.powerbi.com/view?r=eyJrIjoiNGRjMTUwNDEtZjAxOS00MmY2LWFiNTEtMWE3OTJkMTk3NmZlIiwidCI6ImE0ZTY5NmQ4LTg4OTktNGNhNy1iN2VhLTNiZjY0ODNjYzkwZCIsImMiOjEwfQ%3D%3D" frameborder="0" allowFullScreen="true"></iframe>
+      <iframe title="LongBill" width="100%" height="100%" src="https://app.powerbi.com/view?r=eyJrIjoiNGRjMTUwNDEtZjAxOS00MmY2LWFiNTEtMWE3OTJkMTk3NmZlIiwidCI6ImE0ZTY5NmQ4LTg4OTktNGNhNy1iN2VhLTNiZjY0ODNjYzkwZCIsImMiOjEwfQ%3D%3D" frameborder="0" allowFullScreen="true"></iframe>
   
       </DialogContent>
     </Dialog>
