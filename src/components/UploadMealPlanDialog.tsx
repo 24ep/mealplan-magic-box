@@ -44,7 +44,10 @@ const UploadMealPlanDialog = ({
     // Fetch plan types from the API
     const fetchPlanTypes = async () => {
       try {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+         // Direct API calls during development; proxy in production
+  const apiBaseUrl = import.meta.env.MODE === 'development'
+    ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+    : '/api'; // Proxy endpoint in production
         const response = await fetch(`${apiBaseUrl}/QueryBillType`);
         if (!response.ok) throw new Error("Failed to fetch plan types");
         const data: PlanType[] = await response.json();
@@ -89,7 +92,10 @@ const UploadMealPlanDialog = ({
 
     try {
       const base64File = await fileToBase64(file);
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+       // Direct API calls during development; proxy in production
+  const apiBaseUrl = import.meta.env.MODE === 'development'
+    ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+    : '/api'; // Proxy endpoint in production
       const uploadEndpoint =
       selectedPlanType === 2
         ? `${apiBaseUrl}/UploadServiceBoothPlan`

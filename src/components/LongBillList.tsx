@@ -27,7 +27,10 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
     try {
       const formData = new URLSearchParams();
       formData.append("meal_plan_id", selectedMealPlanId.toString());
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+       // Direct API calls during development; proxy in production
+  const apiBaseUrl = import.meta.env.MODE === 'development'
+    ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+    : '/api'; // Proxy endpoint in production
       const response = await fetch(`${apiBaseUrl}/QueryLongBillList`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -67,6 +70,8 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
   ? bills.filter((bill) => String(bill.meal_plan_id) === String(selectedMealPlanId))[0]?.bill_type_id
   : null;
 
+  console.log(filteredMealPlanIdForListPlanType);
+
   const handleGenerateBlankLongBill = () => {
     const newBlankBill: LongBill = {
       id: `temp-${Date.now()}`, // Temporary ID
@@ -82,7 +87,7 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
       signature: "",
       status: 1,
       running_id: null,
-      bill_type:filteredMealPlanIdForListPlanType
+      bill_type: filteredMealPlanIdForListPlanType
     };
 
     setBills((prevBills) => [newBlankBill, ...prevBills]);
@@ -170,6 +175,7 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
         open={selectedBill !== null}
         onOpenChange={(open) => !open && setSelectedBill(null)}
         refreshBills={handleRefresh} // Pass the refresh callback to the dialog
+        filteredMealPlanIdForListPlanType={filteredMealPlanIdForListPlanType}
       />
 
       {/* Report Dialog */}

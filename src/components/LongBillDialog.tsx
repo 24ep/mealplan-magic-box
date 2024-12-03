@@ -13,6 +13,7 @@ export interface BillItem {
   item_description: string;
   quantity: number;
   price: number;
+ 
 }
 
 export interface BillData {
@@ -30,9 +31,10 @@ export interface BillData {
   signature: string;
   items: BillItem[];
   running_id:string;
+  bill_type?: number | null;
 }
 
-const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
+const LongBillDialog = ({ bill, open, onOpenChange,refreshBills ,filteredMealPlanIdForListPlanType }) => {
   const { toast } = useToast();
   const [isEditMode, setIsEditMode] = useState(false);
   const [billData, setBillData] = useState<BillData>({
@@ -77,7 +79,10 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
   const fetchBillItems = async (longbill_id) => {
     setLoading(true);
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+       // Direct API calls during development; proxy in production
+      const apiBaseUrl = import.meta.env.MODE === 'development'
+      ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+      : '/api'; // Proxy endpoint in production
       const response = await fetch(`${apiBaseUrl}/QueryLongBillItems`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -109,7 +114,10 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
     try {
 
       const updatedBillData = { ...billData }; // Create a fresh copy
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+       // Direct API calls during development; proxy in production
+  const apiBaseUrl = import.meta.env.MODE === 'development'
+    ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+    : '/api'; // Proxy endpoint in production
       const response = await fetch(`${apiBaseUrl}/LongBillData`, {
         method: "POST",
         headers: {
@@ -245,7 +253,6 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
     );
   };
   // const visibleItems = billData.items.filter((item) => item.status !== "delete");
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[100%] max-w-[1200px] h-[90vh] p-0 shadow-lg rounded-lg overflow-y-auto flex">
@@ -258,7 +265,6 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
               renderInputOrDisplay={renderInputOrDisplay}
             />
             <div className="border border-t-0 border-black">
-   
               <BillItems
                 items={billData.items}
                 isEditMode={isEditMode}
@@ -285,6 +291,7 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills  }) => {
           handleSave={handleSave}
           handlePrint={handlePrint}
           setBillData={setBillData}
+
 
         />
       </DialogContent>

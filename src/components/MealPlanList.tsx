@@ -56,7 +56,10 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
   useEffect(() => {
     const fetchPlanTypes = async () => {
       try {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+         // Direct API calls during development; proxy in production
+  const apiBaseUrl = import.meta.env.MODE === 'development'
+    ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+    : '/api'; // Proxy endpoint in production
         const response = await fetch(`${apiBaseUrl}/QueryBillType`);
         if (response.ok) {
           const data: PlanType[] = await response.json();
@@ -83,7 +86,10 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
     
       formData.append("bill_type", selectedPlanType);
       
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+       // Direct API calls during development; proxy in production
+  const apiBaseUrl = import.meta.env.MODE === 'development'
+    ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+    : '/api'; // Proxy endpoint in production
       const response = await fetch(`${apiBaseUrl}/QueryMealPlanList`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -177,7 +183,10 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
     try {
       const formData = new URLSearchParams();
       formData.append("meal_plan_id", plan.id);
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+       // Direct API calls during development; proxy in production
+  const apiBaseUrl = import.meta.env.MODE === 'development'
+    ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+    : '/api'; // Proxy endpoint in production
       const response = await fetch(`${apiBaseUrl}/QueryMealPlanItem`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },

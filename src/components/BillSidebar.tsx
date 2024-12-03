@@ -12,6 +12,7 @@ interface BillData {
   event_name: string;
   status: string;
   running_id:number;
+  bill_type:string;
 }
 
 interface BillSidebarProps {

@@ -104,7 +104,10 @@ const MealPlanItemsDialog = ({
     );
   
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+       // Direct API calls during development; proxy in production
+  const apiBaseUrl = import.meta.env.MODE === 'development'
+    ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+    : '/api'; // Proxy endpoint in production
       const response = await fetch(
         `${apiBaseUrl}/GenerateLongBillFromJson`,
         {

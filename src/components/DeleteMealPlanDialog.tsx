@@ -28,7 +28,10 @@ const DeleteMealPlanDialog = ({
   const { toast } = useToast();
   
   const handleDelete = async () => {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL; // Get API base URL from environment variable
+     // Direct API calls during development; proxy in production
+  const apiBaseUrl = import.meta.env.MODE === 'development'
+    ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+    : '/api'; // Proxy endpoint in production // Get API base URL from environment variable
 
     try {
       const response = await fetch(`${apiBaseUrl}/DeletePlanFile`, {
