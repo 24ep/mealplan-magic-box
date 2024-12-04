@@ -13,6 +13,8 @@ interface LongBillListProps {
 const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
   const [selectedBill, setSelectedBill] = useState<LongBill | null>(null);
   const [bills, setBills] = useState<LongBill[]>([]);
+  const [mlDetail, setMLDetail] = useState([]);
+  
   const { toast } = useToast();
   const [isReportDialogOpen, setReportDialogOpen] = useState(false); // State for the report dialog
   const [reportUrl, setReportUrl] = useState(""); // URL for the report
@@ -21,6 +23,7 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
   const fetchLongBills = async () => {
     if (!selectedMealPlanId) {
       setBills([]);
+      setMLDetail([]);
       return;
     }
 
@@ -28,33 +31,65 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
       const formData = new URLSearchParams();
       formData.append("meal_plan_id", selectedMealPlanId.toString());
        // Direct API calls during development; proxy in production
-  const apiBaseUrl = import.meta.env.MODE === 'development'
-    ? import.meta.env.VITE_API_BASE_URL // Direct API during development
-    : '/api'; // Proxy endpoint in production
-      const response = await fetch(`${apiBaseUrl}/QueryLongBillList`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData,
-      });
+      const apiBaseUrl = import.meta.env.MODE === 'development'
+        ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+        : '/api'; // Proxy endpoint in production
+          const response = await fetch(`${apiBaseUrl}/QueryLongBillList`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData,
+          });
 
-      if (response.ok) {
-        const data = await response.json();
-        setBills(data); // Set the fetched bills
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to fetch long bills.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: `Error fetching long bills: ${(error as Error).message}`,
-        variant: "destructive",
-      });
-    }
-  };
+          if (response.ok) {
+            const data = await response.json();
+            setBills(data); // Set the fetched bills
+          } else {
+            toast({
+              title: "Error",
+              description: "Failed to fetch long bills.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: `Error fetching long bills: ${(error as Error).message}`,
+            variant: "destructive",
+          });
+        }
+
+
+        try {
+          const formData = new URLSearchParams();
+          formData.append("meal_plan_id", selectedMealPlanId);
+           // Direct API calls during development; proxy in production
+          const apiBaseUrl = import.meta.env.MODE === 'development'
+            ? import.meta.env.VITE_API_BASE_URL // Direct API during development
+            : '/api'; // Proxy endpoint in production
+              const response = await fetch(`${apiBaseUrl}/QueryMealPlamDetail`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData,
+              });
+    
+              if (response.ok) {
+                const data = await response.json();
+                setMLDetail(data); // Set the fetched bills
+              } else {
+                toast({
+                  title: "Error",
+                  description: "Failed to fetch long bills.",
+                  variant: "destructive",
+                });
+              }
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: `Error fetching long bills: ${(error as Error).message}`,
+                variant: "destructive",
+              });
+            }
+      };
 
   // Fetch bills on load or when selectedMealPlanId changes
   useEffect(() => {
@@ -70,7 +105,9 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
   ? bills.filter((bill) => String(bill.meal_plan_id) === String(selectedMealPlanId))[0]?.bill_type_id
   : null;
 
-  console.log(filteredMealPlanIdForListPlanType);
+  const MlbillType = mlDetail?.[0]?.bill_type ?? '0'
+
+  console.log(MlbillType);
 
   const handleGenerateBlankLongBill = () => {
     const newBlankBill: LongBill = {
@@ -87,7 +124,7 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
       signature: "",
       status: 1,
       running_id: null,
-      bill_type: filteredMealPlanIdForListPlanType
+      bill_type: MlbillType
     };
 
     setBills((prevBills) => [newBlankBill, ...prevBills]);
