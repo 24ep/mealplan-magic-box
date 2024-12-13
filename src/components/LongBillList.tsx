@@ -110,6 +110,7 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
   console.log(MlbillType);
 
   const handleGenerateBlankLongBill = () => {
+    
     const newBlankBill: LongBill = {
       id: `temp-${Date.now()}`, // Temporary ID
       meal_plan_id: selectedMealPlanId,
@@ -127,7 +128,11 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
       bill_type: MlbillType
     };
 
+   
+
     setBills((prevBills) => [newBlankBill, ...prevBills]);
+     // Clear the BillItem list
+    // setBillData((prev) => ({ ...prev, items: [] }));
     setSelectedBill(newBlankBill); // Automatically open the dialog for the new blank bill
 
     toast({
@@ -137,6 +142,7 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
   };
 
   const handleOpenReportDialog = (bill: LongBill) => {
+    
     setReportDialogOpen(true); // Open the report dialog
   };
 
@@ -149,21 +155,28 @@ const LongBillList = ({ selectedMealPlanId }: LongBillListProps) => {
 
   return (
     <div className="h-full">
+   
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-gray-900">Long Bills</h2>
-        <button
-          onClick={handleGenerateBlankLongBill}
-          className="px-4 py-2 bg-app-blue text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Generate Blank Long Bill
-        </button>
-        <button
-          onClick={handleOpenReportDialog} // Open report dialog for the selected bill
-          className="ml-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-        >
-          Report
- </button>
+        <div className="flex items-center space-x-4">
+          {selectedMealPlanId && selectedMealPlanId !== 0 && (
+            <button
+              onClick={handleGenerateBlankLongBill}
+              className="px-4 py-2 bg-app-blue text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Generate Blank Long Bill under File {selectedMealPlanId}
+            </button>
+          )}
+          <button
+            onClick={handleOpenReportDialog}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+          >
+            Report
+          </button>
+        </div>
       </div>
+
+
 
       <ScrollArea className="h-[calc(100%-2rem)]">
         {filteredBills.length === 0 ? (

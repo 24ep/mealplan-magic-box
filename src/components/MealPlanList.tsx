@@ -268,35 +268,37 @@ const MealPlanList: React.FC<MealPlanListProps> = ({ onSelect }) => {
 
       {/* Filtered Meal Plans */}
       <ScrollArea className="flex-1">
-        <div className="space-y-2">
-          {filteredPlans .map((plan) => (
-            <div
-              key={plan.id}
-              className={`flex items-center justify-between p-3 border rounded-lg  hover:bg-gray-50 cursor-pointer ${selectedPlan?.id === plan.id ? 'border-2 border-blue-500' : 'border-gray-200'}`}
-              onClick={() => handleSelectPlan(plan.id)}
-            >
-              <div className="flex flex-col">
-                <p className="font-semibold text-lg">File ID :  {plan.id} | {plan.meal_plan_name}</p>
-                <p className="text-sm text-gray-500">File Name: {plan.file_name}</p>
-                <p className="text-sm text-gray-500">Created At: {plan.create_at}</p>
-                <div className="mt-2 flex items-center">
-                  <span className="px-3 py-1 text-sm bg-blue-200 text-blue-800 rounded-full">
-                    {plan.type_lable ? plan.type_lable : "No Type"}
-                  </span>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleShowMealPlanItems(plan); onSelect(plan.id) }}>
-                  <Eye className="w-4 h-4 text-blue-500" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedPlan(plan); handleDialogToggle("deleteOpen", true); }}>
-                  <Trash2 className="w-4 h-4 text-red-500" />
-                </Button>
-              </div>
-            </div>
-          ))}
+  <div className="space-y-2">
+    {filteredPlans.map((plan) => (
+      <div
+        key={plan.id}
+        className={`flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer 
+          ${plan.id <= 2 ? 'bg-gray-300 border-gray-500' : selectedPlan?.id === plan.id ? 'border-2 border-blue-500' : 'border-gray-200'}`}
+        onClick={() => handleSelectPlan(plan.id)}
+      >
+        <div className="flex flex-col">
+          <p className="font-semibold text-lg">File ID : {plan.id} | {plan.meal_plan_name}</p>
+          <p className="text-sm text-gray-500">File Name: {plan.file_name}</p>
+          <p className="text-sm text-gray-500">Created At: {plan.create_at}</p>
+          <div className="mt-2 flex items-center">
+            <span className="px-3 py-1 text-sm bg-blue-200 text-blue-800 rounded-full">
+              {plan.type_lable ? plan.type_lable : "No Type"}
+            </span>
+          </div>
         </div>
-      </ScrollArea>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleShowMealPlanItems(plan); onSelect(plan.id) }}>
+            <Eye className="w-4 h-4 text-blue-500" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedPlan(plan); handleDialogToggle("deleteOpen", true); }}>
+            <Trash2 className="w-4 h-4 text-red-500" />
+          </Button>
+        </div>
+      </div>
+    ))}
+  </div>
+</ScrollArea>
+
 
       {/* Dialog Components */}
       <UploadMealPlanDialog 

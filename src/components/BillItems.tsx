@@ -77,13 +77,13 @@ export const BillItems: React.FC<BillItemsProps> = ({
               </td>
               <td className="border border-black p-1">
                 {isEditMode ? (
-                  <input
-                    type="text"
+                  <textarea 
                     name="item_description"
-                    value={item.item_description || ""}
                     onChange={(e) => handleInputChange(e, "item_description", index)}
                     className="w-full p-1"
-                  />
+                  >
+                  {item.item_description || ""}
+                  </textarea>
                 ) : (
                   <TextDisplay value={item.item_description || ""} />
                 )}

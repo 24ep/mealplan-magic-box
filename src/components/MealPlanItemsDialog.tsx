@@ -209,16 +209,12 @@ const MealPlanItemsDialog = ({
                       </TableHead>
                       {[
                         "event_date",
-                        "descriptive_of_event",
                         "item_description",
                         "price",
                         "unit",
                         "event_id",
                         "event_name",
                         "company_name",
-                        "receiver",
-                        "receiver_full_name",
-                        "signature",
                         "waiter",
                       ].map((header) => (
                         <TableHead key={header}>{header}</TableHead>
@@ -237,16 +233,12 @@ const MealPlanItemsDialog = ({
       </TableCell>
       {[
         "event_date",
-        "descriptive_of_event",
         "item_description",
         "price",
         "unit",
         "event_id",
         "event_name",
         "company_name",
-        "receiver",
-        "receiver_full_name",
-        "signature",
         "waiter",
       ].map((field) => {
         // Dynamically determine the field type

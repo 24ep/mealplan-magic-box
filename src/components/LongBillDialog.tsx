@@ -61,10 +61,14 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills ,filteredMealPla
   }, [bill]);
 
   useEffect(() => {
-    if (open && bill?.id) fetchBillItems(bill.id);
-  }, [open, bill]);
-
-    
+    if (open && bill?.id) {
+      if (typeof bill.id === 'string' && bill.id.startsWith("temp")) {
+        setBillData((prev) => ({ ...prev, items: [] }));
+      } else {
+        fetchBillItems(bill.id);
+      }
+    }
+  }, [open, bill]); // No need to add billData.id to the dependency array
 
 
   useEffect(() => {
@@ -99,6 +103,7 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills ,filteredMealPla
         setBillData((prev) => ({ ...prev, items: sanitizedData}));
       }
     } catch (error) {
+      
       console.error("Error fetching bill items:", error);
       toast({
         title: "Error",
@@ -236,21 +241,36 @@ const LongBillDialog = ({ bill, open, onOpenChange,refreshBills ,filteredMealPla
     }
 
     return isEditMode ? (
-      <input
-        type={
-          field === "event_date"
-            ? "date"
-            : field === "event_id"
-            ? "number"
-            : "text"
-        }
-        value={field === "event_date" ? (value as string).slice(0, 10) : value || ""}
-        onChange={(e) => handleInputChange(e, field)}
-        className="w-full p-2 bg-gray-200"
-      />
+      field === "venue" ? ( // Check if field is "venue"
+        <textarea
+          value={value || ""}
+          onChange={(e) => handleInputChange(e, field)}
+          className=" p-2 bg-gray-200"
+        />
+      ) : (
+        <input
+          type={
+            field === "event_date"
+              ? "date"
+              : field === "event_id"
+              ? "number"
+              : "text"
+          }
+          value={field === "event_date" ? (value as string).slice(0, 10) : value || ""}
+          onChange={(e) => handleInputChange(e, field)}
+          className="w-full p-2 bg-gray-200 "
+        />
+      )
     ) : (
-      <TextDisplay value={value} />
+      <TextDisplay
+      value={
+        field === "event_date" && value
+          ? new Date(value).toLocaleDateString("en-GB") // Format the date as dd/mm/yyyy
+          : value
+      }
+    />
     );
+    
   };
   // const visibleItems = billData.items.filter((item) => item.status !== "delete");
   return (

@@ -41,9 +41,10 @@ interface BillHeaderProps {
                 {renderInputOrDisplay("venue", billData.venue)}
               </td>
               <td colSpan="4" className="border border-t-0 border-r-0 border-black p-2 text-center">
-                <div className="text-red-600">เลขที่บิล/Bill No.</div>
-                {renderInputOrDisplay("running_id", billData.running_id)}
-              </td>
+  <div className="text-red-600">เลขที่บิล/Bill No.</div>
+  {renderInputOrDisplay("running_id", `${new Date(billData.event_date).getFullYear()}-${String(new Date(billData.event_date).getMonth() + 1).padStart(2, '0')}-${String(billData.running_id).padStart(4, '0')}`)}
+</td>
+
             </tr>
             <tr>
                   <td colSpan="1" className="border border-l-0 text-red-600 border-e-0 border-black p-2 text-center">ชื่องาน/Event Name</td>
